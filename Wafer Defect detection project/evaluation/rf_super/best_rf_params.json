@@ -1,0 +1,5 @@
+{
+    "n_estimators": 232,
+    "max_depth": 41,
+    "ccp_alpha": 3.325008440732604e-05
+}

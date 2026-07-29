@@ -1,0 +1,649 @@
+{
+  "dataset_info": {
+    "num_samples": 36991,
+    "map_shape": [
+      52,
+      52
+    ],
+    "num_classes": 8
+  },
+  "null_nan_check": {
+    "X_nan_count": 0,
+    "X_inf_count": 0,
+    "y_nan_count": 0,
+    "y_inf_count": 0,
+    "has_issues": false
+  },
+  "value_ranges": {
+    "dtype": "int32",
+    "min": 0,
+    "max": 3,
+    "mean": 1.0070386643704634,
+    "std": 0.6933730359440856,
+    "median": 1.0,
+    "unique_values": {
+      "0": 23694260,
+      "1": 51931309,
+      "2": 24397897,
+      "3": 198
+    }
+  },
+  "duplicate_analysis": {
+    "total_samples": 36991,
+    "unique_X_maps": 36991,
+    "X_duplicate_patterns": 0,
+    "X_extra_copies": 0,
+    "exact_Xy_duplicate_patterns": 0,
+    "exact_Xy_extra_copies": 0,
+    "same_X_same_label_true_redundancy": 0,
+    "same_X_different_label_data_conflict": 0,
+    "all_zeros_label_count_normal_wafers": 1000,
+    "data_conflict_examples": []
+  },
+  "label_distribution": {
+    "num_classes": 8,
+    "total_samples": 36991,
+    "unique_label_patterns": 38,
+    "per_class": {
+      "class_0": {
+        "positive": 12000,
+        "negative": 24991,
+        "positive_pct": 32.44
+      },
+      "class_1": {
+        "positive": 12000,
+        "negative": 24991,
+        "positive_pct": 32.44
+      },
+      "class_2": {
+        "positive": 12000,
+        "negative": 24991,
+        "positive_pct": 32.44
+      },
+      "class_3": {
+        "positive": 12000,
+        "negative": 24991,
+        "positive_pct": 32.44
+      },
+      "class_4": {
+        "positive": 18000,
+        "negative": 18991,
+        "positive_pct": 48.66
+      },
+      "class_5": {
+        "positive": 141,
+        "negative": 36850,
+        "positive_pct": 0.38
+      },
+      "class_6": {
+        "positive": 18000,
+        "negative": 18991,
+        "positive_pct": 48.66
+      },
+      "class_7": {
+        "positive": 850,
+        "negative": 36141,
+        "positive_pct": 2.3
+      }
+    },
+    "label_patterns": {
+      "pattern_0": {
+        "labels": [
+          1,
+          0,
+          1,
+          0,
+          1,
+          0,
+          1,
+          0
+        ],
+        "count": 1000,
+        "pct": 2.7
+      },
+      "pattern_1": {
+        "labels": [
+          0,
+          1,
+          0,
+          1,
+          0,
+          0,
+          1,
+          0
+        ],
+        "count": 1000,
+        "pct": 2.7
+      },
+      "pattern_2": {
+        "labels": [
+          0,
+          1,
+          0,
+          0,
+          1,
+          0,
+          1,
+          0
+        ],
+        "count": 1000,
+        "pct": 2.7
+      },
+      "pattern_3": {
+        "labels": [
+          0,
+          1,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0
+        ],
+        "count": 1000,
+        "pct": 2.7
+      },
+      "pattern_4": {
+        "labels": [
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0
+        ],
+        "count": 1000,
+        "pct": 2.7
+      },
+      "pattern_5": {
+        "labels": [
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "count": 1000,
+        "pct": 2.7
+      },
+      "pattern_6": {
+        "labels": [
+          0,
+          0,
+          1,
+          0,
+          1,
+          0,
+          1,
+          0
+        ],
+        "count": 1000,
+        "pct": 2.7
+      },
+      "pattern_7": {
+        "labels": [
+          0,
+          0,
+          1,
+          0,
+          1,
+          0,
+          0,
+          0
+        ],
+        "count": 1000,
+        "pct": 2.7
+      },
+      "pattern_8": {
+        "labels": [
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          1,
+          0
+        ],
+        "count": 1000,
+        "pct": 2.7
+      },
+      "pattern_9": {
+        "labels": [
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "count": 1000,
+        "pct": 2.7
+      },
+      "pattern_10": {
+        "labels": [
+          0,
+          0,
+          0,
+          1,
+          1,
+          0,
+          1,
+          0
+        ],
+        "count": 1000,
+        "pct": 2.7
+      },
+      "pattern_11": {
+        "labels": [
+          0,
+          0,
+          0,
+          1,
+          1,
+          0,
+          0,
+          0
+        ],
+        "count": 1000,
+        "pct": 2.7
+      },
+      "pattern_12": {
+        "labels": [
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          1,
+          0
+        ],
+        "count": 1000,
+        "pct": 2.7
+      },
+      "pattern_13": {
+        "labels": [
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0
+        ],
+        "count": 1000,
+        "pct": 2.7
+      },
+      "pattern_14": {
+        "labels": [
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          1,
+          0
+        ],
+        "count": 1000,
+        "pct": 2.7
+      },
+      "pattern_15": {
+        "labels": [
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0
+        ],
+        "count": 1000,
+        "pct": 2.7
+      },
+      "pattern_16": {
+        "labels": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0
+        ],
+        "count": 1000,
+        "pct": 2.7
+      },
+      "pattern_17": {
+        "labels": [
+          1,
+          0,
+          1,
+          0,
+          1,
+          0,
+          0,
+          0
+        ],
+        "count": 1000,
+        "pct": 2.7
+      },
+      "pattern_18": {
+        "labels": [
+          0,
+          1,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0
+        ],
+        "count": 1000,
+        "pct": 2.7
+      },
+      "pattern_19": {
+        "labels": [
+          0,
+          1,
+          0,
+          1,
+          1,
+          0,
+          0,
+          0
+        ],
+        "count": 1000,
+        "pct": 2.7
+      },
+      "pattern_20": {
+        "labels": [
+          0,
+          1,
+          0,
+          1,
+          1,
+          0,
+          1,
+          0
+        ],
+        "count": 1000,
+        "pct": 2.7
+      },
+      "pattern_21": {
+        "labels": [
+          1,
+          0,
+          1,
+          0,
+          0,
+          0,
+          1,
+          0
+        ],
+        "count": 1000,
+        "pct": 2.7
+      },
+      "pattern_22": {
+        "labels": [
+          1,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "count": 1000,
+        "pct": 2.7
+      },
+      "pattern_23": {
+        "labels": [
+          1,
+          0,
+          0,
+          1,
+          1,
+          0,
+          1,
+          0
+        ],
+        "count": 1000,
+        "pct": 2.7
+      },
+      "pattern_24": {
+        "labels": [
+          1,
+          0,
+          0,
+          1,
+          1,
+          0,
+          0,
+          0
+        ],
+        "count": 1000,
+        "pct": 2.7
+      },
+      "pattern_25": {
+        "labels": [
+          1,
+          0,
+          0,
+          1,
+          0,
+          0,
+          1,
+          0
+        ],
+        "count": 1000,
+        "pct": 2.7
+      },
+      "pattern_26": {
+        "labels": [
+          1,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0
+        ],
+        "count": 1000,
+        "pct": 2.7
+      },
+      "pattern_27": {
+        "labels": [
+          1,
+          0,
+          0,
+          0,
+          1,
+          0,
+          1,
+          0
+        ],
+        "count": 1000,
+        "pct": 2.7
+      },
+      "pattern_28": {
+        "labels": [
+          1,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0
+        ],
+        "count": 1000,
+        "pct": 2.7
+      },
+      "pattern_29": {
+        "labels": [
+          1,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0
+        ],
+        "count": 1000,
+        "pct": 2.7
+      },
+      "pattern_30": {
+        "labels": [
+          1,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "count": 1000,
+        "pct": 2.7
+      },
+      "pattern_31": {
+        "labels": [
+          0,
+          1,
+          1,
+          0,
+          1,
+          0,
+          1,
+          0
+        ],
+        "count": 1000,
+        "pct": 2.7
+      },
+      "pattern_32": {
+        "labels": [
+          0,
+          1,
+          1,
+          0,
+          1,
+          0,
+          0,
+          0
+        ],
+        "count": 1000,
+        "pct": 2.7
+      },
+      "pattern_33": {
+        "labels": [
+          0,
+          1,
+          1,
+          0,
+          0,
+          0,
+          1,
+          0
+        ],
+        "count": 1000,
+        "pct": 2.7
+      },
+      "pattern_34": {
+        "labels": [
+          0,
+          1,
+          1,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "count": 1000,
+        "pct": 2.7
+      },
+      "pattern_35": {
+        "labels": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "count": 1000,
+        "pct": 2.7
+      },
+      "pattern_36": {
+        "labels": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1
+        ],
+        "count": 850,
+        "pct": 2.3
+      },
+      "pattern_37": {
+        "labels": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0
+        ],
+        "count": 141,
+        "pct": 0.38
+      }
+    },
+    "labels_per_sample": {
+      "min": 0,
+      "max": 4,
+      "mean": 2.3,
+      "median": 2.0
+    }
+  },
+  "spatial_statistics": {
+    "shape": [
+      36991,
+      52,
+      52
+    ],
+    "per_pixel_mean": {
+      "min": 0.0,
+      "max": 1.6222,
+      "overall": 1.007
+    },
+    "per_pixel_std": {
+      "min": 0.0,
+      "max": 0.5336,
+      "overall": 0.3586
+    },
+    "empty_maps_count": 0,
+    "fully_filled_maps_count": 0
+  }
+}

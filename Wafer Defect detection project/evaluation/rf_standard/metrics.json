@@ -1,0 +1,7 @@
+{
+    "test_loss": 0.0,
+    "micro_f1": 0.7831273966766085,
+    "macro_f1": 0.8282693854884502,
+    "mAP": 0.909175643705517,
+    "model_type": "RandomForest_Standard"
+}

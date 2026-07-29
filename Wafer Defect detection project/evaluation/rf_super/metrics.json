@@ -1,0 +1,12 @@
+{
+    "test_loss": 0.0,
+    "micro_f1": 0.8060858752102992,
+    "macro_f1": 0.8618619331186151,
+    "mAP": 0.9026703211836835,
+    "model_type": "ExtraTrees_Super",
+    "best_params": {
+        "n_estimators": 232,
+        "max_depth": 41,
+        "ccp_alpha": 3.325008440732604e-05
+    }
+}

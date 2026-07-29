@@ -1,0 +1,15 @@
+.venv/
+__pycache__/
+*.pyc
+.mypy_cache/
+.ruff_cache/
+.vscode/
+Wafer_Map_Datasets.npz
+.env
+mlruns/
+Project context.md
+evaluation/rf_super/model.pkl
+evaluation/sssn_competitor/oof/oof_features.npy
+evaluation/rf_standard/model.pkl
+evaluation/rf_standard/model.onnx
+.uv-cache/
