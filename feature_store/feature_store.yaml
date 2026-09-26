@@ -1,0 +1,13 @@
+project: mlops_team_6
+provider: local
+
+registry: s3://datasets/feast_registry/registry.db
+
+online_store:
+  type: sqlite
+  path: feast_online.db
+
+offline_store:
+  type: file
+
+entity_key_serialization_version: 2

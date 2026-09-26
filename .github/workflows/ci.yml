@@ -1,0 +1,64 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+env:
+  UV_HTTP_TIMEOUT: "600"
+  UV_HTTP_RETRIES: "3"
+  UV_CONCURRENT_DOWNLOADS: "1"
+  UV_CACHE_DIR: ".uv-cache"
+  PYTHONPATH: "."
+
+jobs:
+  quality-gate:
+    name: Lint / Typecheck / Test
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/astral-sh/uv:python3.11-bookworm-slim
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Cache uv
+        uses: actions/cache@v4
+        with:
+          path: .uv-cache
+          key: uv-cache-${{ runner.os }}-${{ hashFiles('uv.lock') }}
+          restore-keys: uv-cache-${{ runner.os }}-
+
+      - name: Cache mypy
+        uses: actions/cache@v4
+        with:
+          path: .mypy_cache
+          key: mypy-cache-${{ runner.os }}-${{ hashFiles('src/**/*.py', 'feature_store/**/*.py') }}
+          restore-keys: mypy-cache-${{ runner.os }}-
+
+      - name: Cache ruff
+        uses: actions/cache@v4
+        with:
+          path: .ruff_cache
+          key: ruff-cache-${{ runner.os }}-${{ hashFiles('src/**/*.py', 'feature_store/**/*.py') }}
+          restore-keys: ruff-cache-${{ runner.os }}-
+
+      - name: Cache pytest
+        uses: actions/cache@v4
+        with:
+          path: .pytest_cache
+          key: pytest-cache-${{ runner.os }}-${{ hashFiles('tests/**/*.py') }}
+          restore-keys: pytest-cache-${{ runner.os }}-
+
+      - name: Sync dependencies
+        run: uv sync --frozen --no-install-project
+
+      - name: Ruff (lint)
+        run: uv run ruff check .
+
+      - name: Mypy (typecheck)
+        run: uv run mypy src/ feature_store/
+
+      - name: Pytest (tests)
+        run: uv run pytest tests/

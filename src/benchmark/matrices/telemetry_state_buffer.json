@@ -1,0 +1,12 @@
+{
+    "last_calculated_anomaly_count": 0,
+    "dtmc_drift_score": 0.2376867853294452,
+    "dtmc_drift_detected": false,
+    "mmd_drift_score": 0.001435243039640266,
+    "mmd_drift_detected": false,
+    "champion_mAP": 0.9613311216640701,
+    "champion_macro_f1": 0.9197491566941791,
+    "competitor_mAP": 0.0,
+    "competitor_macro_f1": 0.0,
+    "pipeline_state": "staged_for_prometheus"
+}

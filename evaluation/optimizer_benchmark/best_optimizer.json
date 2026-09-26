@@ -1,0 +1,15 @@
+{
+    "name": "adamw_cosine_lr5e-04_wd1e-02",
+    "optimizer": "adamw",
+    "scheduler": "cosine",
+    "lr": 0.0005,
+    "weight_decay": 0.01,
+    "momentum": 0.9,
+    "step_size": 2,
+    "scheduler_gamma": 0.5,
+    "cosine_t_max": 10,
+    "focal_gamma": 2.0,
+    "alpha_mode": "balanced",
+    "scalar_alpha": 1.0,
+    "epochs": 10
+}

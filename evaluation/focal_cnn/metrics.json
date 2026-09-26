@@ -1,0 +1,9 @@
+{
+    "test_loss": 0.0034927858728483973,
+    "micro_f1": 0.9814455829410136,
+    "macro_f1": 0.9684754476497784,
+    "mAP": 0.9933938781635365,
+    "epochs_trained": 35,
+    "optimizer": "AdamW",
+    "loss_fn": "FocalLoss"
+}

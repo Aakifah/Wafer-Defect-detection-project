@@ -1,0 +1,4 @@
+feast==0.40.0
+boto3
+pandas
+pyarrow

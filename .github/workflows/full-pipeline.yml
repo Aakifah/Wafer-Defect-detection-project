@@ -1,0 +1,220 @@
+name: Full Pipeline
+
+on:
+  workflow_dispatch:
+    inputs:
+      run_calibration:
+        description: 'Run baseline calibration'
+        type: boolean
+        default: false
+      run_batch_inference:
+        description: 'Run batch inference + drift detection'
+        type: boolean
+        default: false
+      push_telemetry:
+        description: 'Push metrics to Pushgateway'
+        type: boolean
+        default: false
+
+env:
+  UV_HTTP_TIMEOUT: "600"
+  UV_HTTP_RETRIES: "3"
+  UV_CONCURRENT_DOWNLOADS: "1"
+  UV_CACHE_DIR: ".uv-cache"
+  PYTHONPATH: "."
+
+jobs:
+  log-models:
+    name: Log Models to MLflow
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/astral-sh/uv:python3.11-bookworm-slim
+    timeout-minutes: 30
+    continue-on-error: true
+    services:
+      mlflow:
+        image: ghcr.io/mlflow/mlflow:v2.20.0
+        ports:
+          - 5000:5000
+        options: >-
+          --health-cmd "curl -f http://localhost:5000/health || exit 1"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      MLFLOW_TRACKING_URI: http://mlflow:5000
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Cache uv
+        uses: actions/cache@v4
+        with:
+          path: .uv-cache
+          key: uv-cache-${{ runner.os }}-${{ hashFiles('uv.lock') }}
+          restore-keys: uv-cache-${{ runner.os }}-
+
+      - name: Sync dependencies
+        run: uv sync --frozen --no-install-project
+
+      - name: Log to MLflow
+        run: uv run python src/training/log_to_mlflow.py
+
+  baseline-calibration:
+    name: Baseline Calibration
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/astral-sh/uv:python3.11-bookworm-slim
+    timeout-minutes: 30
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Cache uv
+        uses: actions/cache@v4
+        with:
+          path: .uv-cache
+          key: uv-cache-${{ runner.os }}-${{ hashFiles('uv.lock') }}
+          restore-keys: uv-cache-${{ runner.os }}-
+
+      - name: Sync dependencies
+        run: uv sync --frozen --no-install-project
+
+      - name: Calibrate MMD baseline
+        run: uv run python src/telemetry/calibrate_mmd.py
+
+      - name: Calibrate DTMC baseline
+        run: uv run python src/telemetry/calibrate_baseline.py
+
+      - name: Upload calibration artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: calibration-matrices
+          path: src/benchmark/matrices/
+          retention-days: 7
+
+  telemetry-evaluation:
+    name: Telemetry Evaluation
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/astral-sh/uv:python3.11-bookworm-slim
+    timeout-minutes: 30
+    continue-on-error: true
+    needs: [baseline-calibration]
+    services:
+      mlflow:
+        image: ghcr.io/mlflow/mlflow:v2.20.0
+        ports:
+          - 5000:5000
+        options: >-
+          --health-cmd "curl -f http://localhost:5000/health || exit 1"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      MLFLOW_TRACKING_URI: http://mlflow:5000
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Cache uv
+        uses: actions/cache@v4
+        with:
+          path: .uv-cache
+          key: uv-cache-${{ runner.os }}-${{ hashFiles('uv.lock') }}
+          restore-keys: uv-cache-${{ runner.os }}-
+
+      - name: Download calibration artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: calibration-matrices
+          path: src/benchmark/matrices/
+
+      - name: Sync dependencies
+        run: uv sync --frozen --no-install-project
+
+      - name: Run batch inference
+        run: uv run python src/serving/batch_inference.py
+
+      - name: Compute class metrics
+        run: uv run python src/evaluation/class_metrics.py
+
+      - name: Upload telemetry artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: telemetry-and-performance-${{ github.sha }}
+          path: src/benchmark/
+          retention-days: 7
+
+  telemetry-push:
+    name: Push Telemetry
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/astral-sh/uv:python3.11-bookworm-slim
+    timeout-minutes: 30
+    continue-on-error: true
+    needs: [telemetry-evaluation]
+    services:
+      pushgateway:
+        image: prom/pushgateway:latest
+        ports:
+          - 9091:9091
+    env:
+      PUSHGATEWAY_URL: http://pushgateway:9091
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Cache uv
+        uses: actions/cache@v4
+        with:
+          path: .uv-cache
+          key: uv-cache-${{ runner.os }}-${{ hashFiles('uv.lock') }}
+          restore-keys: uv-cache-${{ runner.os }}-
+
+      - name: Download telemetry artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: telemetry-and-performance-${{ github.sha }}
+          path: src/benchmark/
+
+      - name: Sync dependencies
+        run: uv sync --frozen --no-install-project
+
+      - name: Push telemetry
+        run: uv run python src/monitoring/push_telemetry.py
+
+  verify-observability:
+    name: Verify Observability
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/astral-sh/uv:python3.11-bookworm-slim
+    timeout-minutes: 30
+    continue-on-error: true
+    needs: [telemetry-push]
+    services:
+      pushgateway:
+        image: prom/pushgateway:latest
+        ports:
+          - 9091:9091
+      prometheus:
+        image: prom/prometheus:latest
+        ports:
+          - 9090:9090
+        volumes:
+          - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    env:
+      PUSHGATEWAY_URL: http://pushgateway:9091
+      PROMETHEUS_URL: http://prometheus:9090
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Cache uv
+        uses: actions/cache@v4
+        with:
+          path: .uv-cache
+          key: uv-cache-${{ runner.os }}-${{ hashFiles('uv.lock') }}
+          restore-keys: uv-cache-${{ runner.os }}-
+
+      - name: Sync dependencies
+        run: uv sync --frozen --no-install-project
+
+      - name: Verify observability
+        run: uv run python src/monitoring/verify_observability.py
