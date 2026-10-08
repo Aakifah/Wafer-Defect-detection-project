@@ -1,12 +1,12 @@
-import json
+import json  # noqa: I001 - torch precedes mlflow below (Windows DLL init conflict)
 import logging
 import os
 import pickle
 from pathlib import Path
 from typing import Any
 
-import mlflow
 import torch
+import mlflow
 from mlflow.tracking import MlflowClient
 
 from src.model.architecture import CompleteCNN
@@ -20,6 +20,7 @@ logger = logging.getLogger(__name__)
 DESCRIPTIONS = {
     "base_cnn": "Base CNN trained with BCEWithLogitsLoss and default optimizer",
     "focal_cnn": "CNN trained with Focal Loss gamma=2.0 and class-balanced alpha",
+    "asl_sam_cnn": "CNN trained with Asymmetric Loss and SAM(AdamW) optimizer",
     "optimized_cnn": "CNN trained with best optimizer from benchmark and Focal Loss",
     "bayesian_cnn": "CNN trained with Bayesian-optimized hyperparameters",
     "asvd_cnn": "ASVD-compressed CNN preserving 90% singular value energy",
@@ -53,7 +54,7 @@ def log_all_stages() -> None:
 
     client = MlflowClient()
 
-    cnn_order = ["base_cnn", "focal_cnn", "optimized_cnn", "bayesian_cnn", "asvd_cnn", "quantized_cnn"]
+    cnn_order = ["base_cnn", "focal_cnn", "asl_sam_cnn", "optimized_cnn", "bayesian_cnn", "asvd_cnn", "quantized_cnn"]
     rf_order = ["rf_standard", "rf_super"]
     sssn_order = ["sssn_competitor"]
 

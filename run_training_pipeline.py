@@ -40,6 +40,7 @@ def main() -> None:
         "src/training/train_bayesian.py",
         "src/training/train_base.py",
         "src/training/train_focal.py",
+        "src/training/train_asl_sam.py",
         "src/training/train_asvd.py",
         "src/training/train_quantized.py",
         "src/training/train_sssn.py",

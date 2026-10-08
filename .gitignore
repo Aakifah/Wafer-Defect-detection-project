@@ -15,3 +15,7 @@ evaluation/rf_standard/model.onnx
 .uv-cache/
 AGENTS.md
 opencode.json
+docs/
+*.log
+mlflow_local.db
+session-*.md

@@ -27,7 +27,7 @@ from torch.utils.data import DataLoader, TensorDataset
 from src.model.architecture import CompleteCNN
 from src.model.loss import FocalLoss
 
-OptimizerName = Literal["adamw", "sgd_nesterov"]
+OptimizerName = Literal["adamw", "sgd_nesterov", "adamw_sam"]
 SchedulerName = Literal["none", "step_lr", "cosine"]
 AlphaMode = Literal["scalar", "balanced"]
 ModelFactory = Callable[[], nn.Module]
@@ -129,6 +129,10 @@ def build_loss(
 def build_optimizer(config: BenchmarkConfig, model: nn.Module) -> Optimizer:
     if config.optimizer == "adamw":
         return AdamW(model.parameters(), lr=config.lr, weight_decay=config.weight_decay)
+    if config.optimizer == "adamw_sam":
+        from src.training.sam import build_sam_adamw
+
+        return build_sam_adamw(model, lr=config.lr, weight_decay=config.weight_decay)
     return SGD(
         model.parameters(),
         lr=config.lr,
@@ -153,6 +157,11 @@ def train_one_epoch(
     loss_fn: nn.Module,
     optimizer: Optimizer,
 ) -> float:
+    from src.training.sam import SAM, sam_train_one_epoch
+
+    if isinstance(optimizer, SAM):
+        device = next(model.parameters()).device
+        return sam_train_one_epoch(model, loader, loss_fn, optimizer, device)
     model.train()
     total_loss = 0.0
     total_samples = 0

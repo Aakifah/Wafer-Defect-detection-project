@@ -5,17 +5,17 @@ running inference, evaluating DTMC/MMD drift on the Champion, calculating mAP/F1
 for both models, logging to MLflow, and triggering automated retraining if drift exceeds thresholds.
 """
 
-import json
+import json  # noqa: I001 - torch precedes mlflow below (Windows DLL init conflict)
 import logging
 import os
 import pickle
 import time
 from typing import Any
 
+import torch
 import mlflow
 import numpy as np
 import numpy.typing as npt
-import torch
 from mlflow.tracking import MlflowClient
 from sklearn.metrics import average_precision_score, f1_score
 

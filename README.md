@@ -23,7 +23,7 @@ The Wafer Defect Detection Engine is a Convolutional Neural Network (CNN) archit
 
 Key highlights:
 
-- **Progressive optimisation pipeline** — baseline CNN → Focal Loss → Bayesian hyperparameter tuning (Optuna) → ASVD compression → INT8 quantisation 
+- **Progressive optimisation pipeline** — baseline CNN → Focal Loss / Asymmetric Loss → Bayesian hyperparameter tuning (Optuna) → SAM flat-minima optimisation + SWA → ASVD compression → INT8 quantisation 
 - **Dual drift detection** — Discrete-Time Markov Chains (DTMC) and Maximum Mean Discrepancy (MMD) continuously monitor production predictions against calibrated baselines
 - **Automated retraining triggers** — drift thresholds gate automated model retraining without human intervention
 - **Full MLOps observability** — metrics pushed to Prometheus Pushgateway, visualised in Grafana, models tracked in MLflow Registry with Champion/Competitor aliasing
@@ -50,6 +50,7 @@ wafer-defect-detection/
 │   ├── model/                      # Core model definitions
 │   │   ├── architecture.py         #   CompleteCNN — 52×52 multi-label CNN with QuantStub
 │   │   ├── loss.py                 #   Focal Loss for imbalanced multi-label classification
+│   │   ├── asymmetric_loss.py      #   Asymmetric Loss (gamma_pos/gamma_neg + margin)
 │   │   ├── compression.py          #   ASVD — adaptive SVD rank reduction for Linear layers
 │   │   └── sssn/                   #   Spatial-Semantic Stacking Network ensemble
 │   │       ├── mlsmote.py          #     Custom multi-label SMOTE oversampling
@@ -63,6 +64,7 @@ wafer-defect-detection/
 │   │   ├── optimizer_benchmark.py  #   AdamW vs SGD+Nesterov benchmark sweep
 │   │   ├── train_base.py           #   Baseline CNN with BCE loss
 │   │   ├── train_focal.py          #   CNN with Focal Loss
+│   │   ├── train_asl_sam.py        #   CNN with Asymmetric Loss + SAM + SWA
 │   │   ├── train_bayesian.py       #   Optuna Bayesian hyperparameter search
 │   │   ├── train_asvd.py           #   ASVD-compressed CNN evaluation
 │   │   ├── train_quantized.py      #   INT8 post-training static quantisation (PTQ)
@@ -205,12 +207,13 @@ Executed in order by `run_training_pipeline.py`:
 
 | # | Script | Purpose |
 |---|--------|---------|
-| 1 | `optimizer_benchmark.py` | Grid-sweeps AdamW vs SGD+Nesterov across learning rates, weight decays, and schedulers (cosine/step). Selects best configuration. |
+| 1 | `optimizer_benchmark.py` | Grid-sweeps AdamW vs SGD+Nesterov vs SAM(AdamW) across learning rates, weight decays, and schedulers (cosine/step). Selects best configuration. |
 | 2 | `train_rf_standard.py` | Standard `RandomForestClassifier` baseline (100 estimators). Flattens 52×52 → 2,704 features. |
 | 3 | `train_rf_super.py` | Bayesian-optimised `ExtraTreesClassifier` via Optuna. Searches `n_estimators`, `max_depth`, `ccp_alpha` with `class_weight='balanced_subsample'`. |
 | 4 | `train_bayesian.py` | Optuna hyperparameter search (35 trials) over learning rate, weight decay, and Focal gamma. Maximises mean Average Precision (mAP). Trains final golden model. |
 | 5 | `train_base.py` | Baseline `CompleteCNN` with `BCEWithLogitsLoss`, AdamW, 35 epochs, early stopping. |
 | 6 | `train_focal.py` | `CompleteCNN` with `FocalLoss` (gamma=2.0, class-balanced alpha) for minority class prioritisation. |
+| 6b | `train_asl_sam.py` | `CompleteCNN` with `AsymmetricLoss` (gamma_pos=0.0, gamma_neg=4.0, margin=0.05) + `SAM(AdamW, rho=0.05)` + SWA. New recommended head; output `evaluation/asl_sam_cnn/`. |
 | 7 | `train_asvd.py` | Loads Bayesian model and applies Adaptive SVD compression (90% cumulative energy retention) to all Linear layers. |
 | 8 | `train_quantized.py` | Post-Training Static Quantisation (PTQ) to INT8: fuses Conv+BatchNorm, calibrates activation ranges, converts, evaluates, exports TorchScript. |
 | 9 | `train_sssn.py` | Spatial-Semantic Stacking Network — 5-phase ensemble: extract 512D features from frozen CNN → MLSMOTE oversampling → XGBoost ClassifierChain (Level 1A) + MLP (Level 1B) → Ridge Classifier (Level 2). |
@@ -264,6 +267,8 @@ Executed in order by `run_training_pipeline.py`:
 |-----------|-------------|
 | **CNN (CompleteCNN)** | 4-convolutional-layer backbone for 52×52 wafer map feature extraction |
 | **Focal Loss** | Addresses extreme class imbalance (Scratch, Donut) by down-weighting easy negatives |
+| **Asymmetric Loss (ASL)** | Decouples gamma_pos/gamma_neg + negative margin; preserves rare positives better than symmetric Focal |
+| **SAM + SWA** | Sharpness-Aware Minimization over AdamW (rho=0.05) + Stochastic Weight Averaging for flat minima |
 | **Random Forest** | Classic ensemble baseline — 100 estimators, bootstrap aggregation |
 | **ExtraTrees** | Bayesian-optimised competitor RF with balanced subsample weighting |
 | **XGBoost** | Gradient-boosted ClassifierChain for SSSN spatial meta-learning |
