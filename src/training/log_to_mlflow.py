@@ -21,6 +21,8 @@ DESCRIPTIONS = {
     "base_cnn": "Base CNN trained with BCEWithLogitsLoss and default optimizer",
     "focal_cnn": "CNN trained with Focal Loss gamma=2.0 and class-balanced alpha",
     "asl_sam_cnn": "CNN trained with Asymmetric Loss and SAM(AdamW) optimizer",
+    "focal_sam_cnn": "CNN trained with Focal Loss and SAM(AdamW) optimizer",
+    "asl_adamw_cnn": "CNN trained with Asymmetric Loss and AdamW optimizer",
     "optimized_cnn": "CNN trained with best optimizer from benchmark and Focal Loss",
     "bayesian_cnn": "CNN trained with Bayesian-optimized hyperparameters",
     "asvd_cnn": "ASVD-compressed CNN preserving 90% singular value energy",
@@ -54,7 +56,7 @@ def log_all_stages() -> None:
 
     client = MlflowClient()
 
-    cnn_order = ["base_cnn", "focal_cnn", "asl_sam_cnn", "optimized_cnn", "bayesian_cnn", "asvd_cnn", "quantized_cnn"]
+    cnn_order = ["base_cnn", "focal_cnn", "asl_sam_cnn", "focal_sam_cnn", "asl_adamw_cnn", "optimized_cnn", "bayesian_cnn", "asvd_cnn", "quantized_cnn"]
     rf_order = ["rf_standard", "rf_super"]
     sssn_order = ["sssn_competitor"]
 

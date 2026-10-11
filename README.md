@@ -93,6 +93,8 @@ wafer-defect-detection/
 │   │
 │   ├── monitoring/                 # Prometheus / Grafana observability
 │   │   ├── push_telemetry.py       #   Push DTMC / MMD drift metrics to Pushgateway
+│   │   ├── push_comparison.py      #   Push per-stage mAP/F1/loss gauges for Grafana
+│   │   ├── wafer_dashboard.json    #   Grafana dashboard definition (Wafer Defect Detection)
 │   │   └── verify_observability.py #   Prometheus and Pushgateway health checks
 │   │
 │   └── benchmark/
@@ -213,7 +215,7 @@ Executed in order by `run_training_pipeline.py`:
 | 4 | `train_bayesian.py` | Optuna hyperparameter search (35 trials) over learning rate, weight decay, and Focal gamma. Maximises mean Average Precision (mAP). Trains final golden model. |
 | 5 | `train_base.py` | Baseline `CompleteCNN` with `BCEWithLogitsLoss`, AdamW, 35 epochs, early stopping. |
 | 6 | `train_focal.py` | `CompleteCNN` with `FocalLoss` (gamma=2.0, class-balanced alpha) for minority class prioritisation. |
-| 6b | `train_asl_sam.py` | `CompleteCNN` with `AsymmetricLoss` (gamma_pos=0.0, gamma_neg=4.0, margin=0.05) + `SAM(AdamW, rho=0.05)` + SWA. New recommended head; output `evaluation/asl_sam_cnn/`. |
+| 6b | `train_asl_sam.py` | Variant trainer over `--loss {asl,focal}` × `--optimizer {sam,adamw}` (defaults `asl`+`sam`, SWA tail). Each pairing saves `evaluation/<stage>/metrics.json + model.pt` and upserts its `comparison.csv` row. |
 | 7 | `train_asvd.py` | Loads Bayesian model and applies Adaptive SVD compression (90% cumulative energy retention) to all Linear layers. |
 | 8 | `train_quantized.py` | Post-Training Static Quantisation (PTQ) to INT8: fuses Conv+BatchNorm, calibrates activation ranges, converts, evaluates, exports TorchScript. |
 | 9 | `train_sssn.py` | Spatial-Semantic Stacking Network — 5-phase ensemble: extract 512D features from frozen CNN → MLSMOTE oversampling → XGBoost ClassifierChain (Level 1A) + MLP (Level 1B) → Ridge Classifier (Level 2). |
@@ -344,6 +346,28 @@ docker compose up -d
 
 ```bash
 PYTHONPATH=. uv run python run_training_pipeline.py
+```
+
+### Training loss/optimizer variants (ablation)
+
+One trainer covers the 2×2 matrix. `--loss` picks the loss module, `--optimizer` picks the update rule (single-step `AdamW` vs two-pass `SAM`); epochs, SWA tail, and metrics format are identical. Each run writes `evaluation/<stage>/metrics.json + model.pt` and upserts its `comparison.csv` row; `src/monitoring/push_comparison.py` picks new stages up for Grafana automatically.
+
+```bash
+PYTHONPATH=. uv run python src/training/train_asl_sam.py --loss asl --optimizer sam     # -> evaluation/asl_sam_cnn/
+PYTHONPATH=. uv run python src/training/train_asl_sam.py --loss focal --optimizer sam   # -> evaluation/focal_sam_cnn/
+PYTHONPATH=. uv run python src/training/train_asl_sam.py --loss asl --optimizer adamw   # -> evaluation/asl_adamw_cnn/
+```
+
+`focal + adamw` is the frozen baseline in `train_focal.py` (`evaluation/focal_cnn/`).
+
+Status: `asl+sam` done (mAP `0.9960` vs Focal `0.9934`, see `evaluation/comparison.csv`); `focal+sam` / `asl+adamw` cells pending — whoever runs them fills rows 7–8 the same way.
+
+### Grafana dashboard
+
+`src/monitoring/wafer_dashboard.json` (import as `Wafer Defect Detection`, uid `wafer-defect`) shows new vs old side by side: mAP/F1 bar gauges per stage from `wafer_stages` (pushed by `src/monitoring/push_comparison.py`), DTMC/MMD drift timeseries with `0.50` / `0.05` alert thresholds, anomaly count, and Champion/Competitor stats. After any new training run:
+
+```bash
+PUSHGATEWAY_URL=http://localhost:9091 PYTHONPATH=. uv run python src/monitoring/push_comparison.py
 ```
 
 ### Running Tests

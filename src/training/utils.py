@@ -1,5 +1,6 @@
 """Utility functions for model training and evaluation."""
 
+import csv
 import json
 import logging
 from pathlib import Path
@@ -136,3 +137,48 @@ def save_evaluation_results(
         json.dump(metrics, f, indent=4)
         
     logger.info("Saved model and metrics to %s", output_dir)
+
+
+def upsert_comparison_row(
+    stage_label: str,
+    micro_f1: float,
+    macro_f1: float,
+    mean_ap: float,
+    comparison_path: str = "evaluation/comparison.csv",
+) -> None:
+    """Insert or replace a stage row in the comparison table.
+
+    Args:
+        stage_label: Row label for the stage.
+        micro_f1: Micro F1 score to record.
+        macro_f1: Macro F1 score to record.
+        mean_ap: Mean average precision to record.
+        comparison_path: Path to the comparison CSV file.
+    """
+    path = Path(comparison_path)
+    rows: list[dict[str, str]] = []
+    if path.exists():
+        with open(path, newline="") as f:
+            rows = list(csv.DictReader(f))
+    updated = False
+    for row in rows:
+        if row.get("Stage") == stage_label:
+            row["Micro F1"] = str(micro_f1)
+            row["Macro F1"] = str(macro_f1)
+            row["mAP"] = str(mean_ap)
+            updated = True
+    if not updated:
+        rows.append(
+            {
+                "Stage": stage_label,
+                "Micro F1": str(micro_f1),
+                "Macro F1": str(macro_f1),
+                "mAP": str(mean_ap),
+            }
+        )
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with open(path, "w", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=["Stage", "Micro F1", "Macro F1", "mAP"])
+        writer.writeheader()
+        writer.writerows(rows)
+    logger.info("Upserted comparison row for %s", stage_label)

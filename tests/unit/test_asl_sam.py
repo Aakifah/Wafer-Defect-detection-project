@@ -5,6 +5,8 @@ import torch.nn as nn
 
 from src.model.asymmetric_loss import AsymmetricLoss
 from src.training.sam import SAM, build_sam_adamw
+from src.training.train_asl_sam import STAGE_DIRS, build_variant_loss, build_variant_optimizer
+from src.training.utils import upsert_comparison_row
 
 
 def test_asl_downweights_easy_negatives() -> None:
@@ -60,3 +62,37 @@ def test_sam_step_reduces_loss_on_toy_problem() -> None:
     optimizer.second_step(zero_grad=True)
     after = loss_fn(model(X), y).item()
     assert after != before
+
+
+def test_variant_loss_builder_selects_correct_module() -> None:
+    from src.model.loss import FocalLoss
+
+    alpha = torch.ones(8)
+    assert isinstance(build_variant_loss("asl", alpha), AsymmetricLoss)
+    assert isinstance(build_variant_loss("focal", alpha), FocalLoss)
+
+
+def test_variant_optimizer_builder_selects_correct_type() -> None:
+    from torch.optim import AdamW
+
+    model = nn.Linear(4, 2)
+    assert isinstance(build_variant_optimizer("sam", model), SAM)
+    assert isinstance(build_variant_optimizer("adamw", model), AdamW)
+
+
+def test_stage_dirs_cover_all_four_cells() -> None:
+    assert STAGE_DIRS[("asl", "sam")] == "asl_sam_cnn"
+    assert STAGE_DIRS[("focal", "sam")] == "focal_sam_cnn"
+    assert STAGE_DIRS[("asl", "adamw")] == "asl_adamw_cnn"
+    assert STAGE_DIRS[("focal", "adamw")] == "focal_adamw_cnn"
+
+
+def test_upsert_comparison_row_inserts_and_replaces(tmp_path: object) -> None:
+    from pathlib import Path
+
+    csv_path = str(Path(str(tmp_path)) / "comparison.csv")
+    upsert_comparison_row("7. + Focal+SAM", 0.9, 0.91, 0.99, comparison_path=csv_path)
+    upsert_comparison_row("7. + Focal+SAM", 0.92, 0.93, 0.995, comparison_path=csv_path)
+    content = Path(csv_path).read_text()
+    assert content.count("7. + Focal+SAM") == 1
+    assert "0.995" in content

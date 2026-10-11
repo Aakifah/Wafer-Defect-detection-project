@@ -17,5 +17,6 @@ AGENTS.md
 opencode.json
 docs/
 *.log
+*.zip
 mlflow_local.db
 session-*.md
