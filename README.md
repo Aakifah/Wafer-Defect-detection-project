@@ -64,7 +64,7 @@ wafer-defect-detection/
 │   │   ├── optimizer_benchmark.py  #   AdamW vs SGD+Nesterov benchmark sweep
 │   │   ├── train_base.py           #   Baseline CNN with BCE loss
 │   │   ├── train_focal.py          #   CNN with Focal Loss
-│   │   ├── train_asl_sam.py        #   CNN with Asymmetric Loss + SAM + SWA
+│   │   ├── train_ablations.py        #   Unified 2×2 loss/optimizer ablation trainer
 │   │   ├── train_bayesian.py       #   Optuna Bayesian hyperparameter search
 │   │   ├── train_asvd.py           #   ASVD-compressed CNN evaluation
 │   │   ├── train_quantized.py      #   INT8 post-training static quantisation (PTQ)
@@ -215,7 +215,7 @@ Executed in order by `run_training_pipeline.py`:
 | 4 | `train_bayesian.py` | Optuna hyperparameter search (35 trials) over learning rate, weight decay, and Focal gamma. Maximises mean Average Precision (mAP). Trains final golden model. |
 | 5 | `train_base.py` | Baseline `CompleteCNN` with `BCEWithLogitsLoss`, AdamW, 35 epochs, early stopping. |
 | 6 | `train_focal.py` | `CompleteCNN` with `FocalLoss` (gamma=2.0, class-balanced alpha) for minority class prioritisation. |
-| 6b | `train_asl_sam.py` | Variant trainer over `--loss {asl,focal}` × `--optimizer {sam,adamw}` (defaults `asl`+`sam`, SWA tail). Each pairing saves `evaluation/<stage>/metrics.json + model.pt` and upserts its `comparison.csv` row. |
+| 6b | `train_ablations.py` | Unified 2×2 ablation trainer over `--loss {asl,focal}` × `--optimizer {sam,adamw}`. Each pairing saves `evaluation/<stage>/metrics.json + model.pt` and upserts its `comparison.csv` row. |
 | 7 | `train_asvd.py` | Loads Bayesian model and applies Adaptive SVD compression (90% cumulative energy retention) to all Linear layers. |
 | 8 | `train_quantized.py` | Post-Training Static Quantisation (PTQ) to INT8: fuses Conv+BatchNorm, calibrates activation ranges, converts, evaluates, exports TorchScript. |
 | 9 | `train_sssn.py` | Spatial-Semantic Stacking Network — 5-phase ensemble: extract 512D features from frozen CNN → MLSMOTE oversampling → XGBoost ClassifierChain (Level 1A) + MLP (Level 1B) → Ridge Classifier (Level 2). |
@@ -348,19 +348,33 @@ docker compose up -d
 PYTHONPATH=. uv run python run_training_pipeline.py
 ```
 
-### Training loss/optimizer variants (ablation)
+### Ablation Study: Loss & Optimizer Variants
 
-One trainer covers the 2×2 matrix. `--loss` picks the loss module, `--optimizer` picks the update rule (single-step `AdamW` vs two-pass `SAM`); epochs, SWA tail, and metrics format are identical. Each run writes `evaluation/<stage>/metrics.json + model.pt` and upserts its `comparison.csv` row; `src/monitoring/push_comparison.py` picks new stages up for Grafana automatically.
+A unified training script evaluates a 2×2 matrix of loss functions and optimizers. The `--loss` flag selects the criterion (Asymmetric Loss vs. Focal Loss), while the `--optimizer` flag selects the update rule (two-pass SAM vs. single-step AdamW). All variants share identical epoch counts, SWA tail configurations, and evaluation metrics.
 
 ```bash
-PYTHONPATH=. uv run python src/training/train_asl_sam.py --loss asl --optimizer sam     # -> evaluation/asl_sam_cnn/
-PYTHONPATH=. uv run python src/training/train_asl_sam.py --loss focal --optimizer sam   # -> evaluation/focal_sam_cnn/
-PYTHONPATH=. uv run python src/training/train_asl_sam.py --loss asl --optimizer adamw   # -> evaluation/asl_adamw_cnn/
+# 1. Proposed Architecture
+PYTHONPATH=. uv run python src/training/train_ablations.py --loss asl --optimizer sam
+
+# 2. Optimizer Ablation
+PYTHONPATH=. uv run python src/training/train_ablations.py --loss focal --optimizer sam
+
+# 3. Loss Ablation
+PYTHONPATH=. uv run python src/training/train_ablations.py --loss asl --optimizer adamw
 ```
 
-`focal + adamw` is the frozen baseline in `train_focal.py` (`evaluation/focal_cnn/`).
+(Note: The frozen focal + adamw baseline remains isolated in train_focal.py outputting to evaluation/focal_cnn/.)
 
-Status: `asl+sam` done (mAP `0.9960` vs Focal `0.9934`, see `evaluation/comparison.csv`); `focal+sam` / `asl+adamw` cells pending — whoever runs them fills rows 7–8 the same way.
+Integration & Telemetry:
+Each execution automatically exports metrics.json and model.pt to a dedicated evaluation/<stage>/ directory, upserts the results into comparison.csv, and is instantly synchronized by src/monitoring/push_comparison.py for live Grafana visualization.
+
+Current Status:
+
+    asl + sam: Completed (mAP 0.9960 vs Baseline 0.9934)
+
+    focal + sam: Pending execution
+
+    asl + adamw: Pending execution
 
 ### Grafana dashboard
 

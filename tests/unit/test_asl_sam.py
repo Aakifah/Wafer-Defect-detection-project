@@ -5,7 +5,7 @@ import torch.nn as nn
 
 from src.model.asymmetric_loss import AsymmetricLoss
 from src.training.sam import SAM, build_sam_adamw
-from src.training.train_asl_sam import STAGE_DIRS, build_variant_loss, build_variant_optimizer
+from src.training.train_ablations import STAGE_DIRS, build_variant_loss, build_variant_optimizer
 from src.training.utils import upsert_comparison_row
 
 
