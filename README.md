@@ -368,13 +368,22 @@ PYTHONPATH=. uv run python src/training/train_ablations.py --loss asl --optimize
 Integration & Telemetry:
 Each execution automatically exports metrics.json and model.pt to a dedicated evaluation/<stage>/ directory, upserts the results into comparison.csv, and is instantly synchronized by src/monitoring/push_comparison.py for live Grafana visualization.
 
-Current Status:
+Current Status (all cells completed, 35 epochs each):
 
-    asl + sam: Completed (mAP 0.9960 vs Baseline 0.9934)
+    asl + sam: mAP 0.9960 (vs Focal baseline 0.9934)
 
-    focal + sam: Pending execution
+    focal + sam: mAP 0.9966 (best non-Bayesian head)
 
-    asl + adamw: Pending execution
+    asl + adamw: mAP 0.9912 (below baseline)
+
+Results (`evaluation/comparison.csv` rows 6–8):
+
+| Loss \ Optimizer | AdamW | SAM(AdamW) |
+|---|---|---|
+| Focal | 0.9934 (row 2, frozen baseline) | 0.9966 (row 7) |
+| ASL | 0.9912 (row 8) | 0.9960 (row 6) |
+
+Reading: the optimizer carries the gain (Focal+SAM − Focal = +0.0032 mAP), while ASL alone trails the baseline (−0.0022 mAP). ASL beats Focal only when paired with SAM. Tuned Bayesian (`0.9978`, row 3) remains the overall best; production Champion stays `quantized_cnn`.
 
 ### Grafana dashboard
 

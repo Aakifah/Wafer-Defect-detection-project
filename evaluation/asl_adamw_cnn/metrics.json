@@ -1,0 +1,14 @@
+{
+    "test_loss": 0.0019497143498806578,
+    "micro_f1": 0.9452678343833072,
+    "macro_f1": 0.9595438793009112,
+    "mAP": 0.9912065378894538,
+    "epochs_trained": 35,
+    "optimizer": "AdamW",
+    "loss_fn": "AsymmetricLoss",
+    "rho": 0.05,
+    "gamma_pos": 0.0,
+    "gamma_neg": 4.0,
+    "margin": 0.05,
+    "focal_gamma": 2.0
+}
