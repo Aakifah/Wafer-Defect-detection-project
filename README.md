@@ -29,6 +29,11 @@ Key highlights:
 - **Full MLOps observability** — metrics pushed to Prometheus Pushgateway, visualised in Grafana, models tracked in MLflow Registry with Champion/Competitor aliasing
 - **Rigorous quality gates** — `mypy` strict mode, `ruff` linting, `pytest` unit/integration/property-based testing via `hypothesis`, all enforced in CI/CD
 
+## Results at a Glance
+
+![Optimization journey across pipeline stages](images/plot_a_journey.svg)
+*Progressive optimisation: Base CNN → Focal → Bayesian Opt → ASVD → INT8 Quant (mAP / Macro-F1).*
+
 ---
 
 ## Repository Structure and Data Flow
@@ -250,6 +255,9 @@ Executed in order by `run_training_pipeline.py`:
 | **TorchScript Export** | Serialises quantised graph for production deployment, strips training backend |
 | **ONNX Runtime (CPU Execution Provider)** | Low-latency inference with hardware-level vectorisation for CPU-bound edge deployment |
 
+![Compression trade-off: peak accuracy vs edge latency](images/plot_c_compression.svg)
+*Bayesian peak vs INT8-quantised Champion — near-lossless compression for edge deployment.*
+
 ### MLOps & Services
 
 | Tool | Purpose |
@@ -280,6 +288,9 @@ Executed in order by `run_training_pipeline.py`:
 | **Multi-Label SMOTE** | Custom k-NN interpolation oversampling for multi-label regime |
 | **Discrete-Time Markov Chain (DTMC)** | Transition probability matrix comparison via Frobenius norm for categorical drift |
 | **Maximum Mean Discrepancy (MMD)** | Two-sample kernel test on penultimate embeddings for distribution shift detection |
+
+![Champion vs Competitor per-class mAP](images/plot_f_all_comparison.png)
+*Quantized CNN (Champion) vs Super RF vs SSSN (Competitor) — CNN stays flat ~0.995+ while RF collapses on Loc / Scratch.*
 
 ### Software Engineering
 
